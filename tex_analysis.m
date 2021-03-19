@@ -5,7 +5,7 @@ clc
 %% --- I M P O S T A Z I O N I
 %%
 % ---- Scelta dell'input e gestione files
-    analyze_just_one = true; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
+    analyze_just_one = false; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
     rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
@@ -61,7 +61,6 @@ firsttime=true;
 for fn=1:to_be_analyzed
  i=fn;
     [IMG_RGB, filename]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
-    disp(filename)
     IMG = rgb2gray(IMG_RGB); % 512x512
     [IMG_x,IMG_y]=size(IMG);
 
@@ -82,18 +81,23 @@ gauss_low = gauss2D(mu, sigma, IMG_x*2, IMG_y*2);
 %% - Analisi
 
 % --- Ricerca dimensione ottimale dei kernels
-%%% TO BE DONE: DECIDERE SE USARE CONT O CORR
+
+%%% TODO: DECIDERE SE USARE CONT O CORR
      [kernel_dim2, kernel_dim] = find_pattern_size(IMG);
-     kernel_dim = round(kernel_dim2);
-     kernel_type = 'CORR';
-     
     
-     if rem(kernel_dim,2) ~= 0 && rem(kernel_dim2,2) == 0
-         kernel_dim= kernel_dim;
-        kernel_type = 'CONT';
+     usecont = false;
+     if usecont
+          kernel_dim= round(kernel_dim2);
+          kernel_type = 'CONT';
+     else
+          kernel_dim = round(kernel_dim);
+          kernel_type = 'CORR';
      end
+
+    
+
      
-     fprintf('1] Kernel scelto: %d | 2nd opzione: %d \n',kernel_dim,kernel_dim2);
+     fprintf('1] Kernel scelto: %d',kernel_dim);
 
 % ---- Definizione dei kernels
     pattern1 = IMG(1:kernel_dim,1:kernel_dim); 
@@ -139,6 +143,7 @@ gauss_low = gauss2D(mu, sigma, IMG_x*2, IMG_y*2);
     
 % ---- Ritaglio IMG e applicazione maschera
     border = kernel_dim / 2;
+    warning('off');
     IMG=IMG(border:end-border+1,border:end-border+1);
     % Clippiamo al massimo i valori dell'immagine che corrispondono alla
     % maschera
@@ -198,7 +203,7 @@ if show_resume == true
     sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected',...
             filename,selected_pixels_ratio));
       
-    resname =sprintf('%s-contrast',files(i).name(1:end-4));
+    resname =sprintf('results\\%s-%s',filename,kernel_type);
     saveas(gcf, resname,'png');
     
     if analyze_just_one == false

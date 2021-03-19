@@ -9,7 +9,7 @@ clear
     rand_image = true; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number = 3;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number = 83;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 
@@ -32,19 +32,15 @@ firsttime=true;
 i=unrand_number;
 fn=i;
 
-path_to_images = '';
 files = dir('defect_images\*.jpg');
 
-path = strcat('defect_images\',files(fn).name);
-disp(path);
-
-IMG_0 = imread(path);
+[IMG_0, filename ]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
 IMG = rgb2gray(IMG_0); % 512x512
 [IMG_x,IMG_y]=size(IMG);
 
     
 
-for kernel_dim=5:25
+for kernel_dim=2:25
     pattern1 = IMG(1:kernel_dim,1:kernel_dim); 
     pattern2 = IMG(2:kernel_dim+1,2:kernel_dim+1);
     pattern3 = IMG(IMG_x-kernel_dim+1:IMG_x,IMG_y-kernel_dim+1:IMG_y);
@@ -54,14 +50,16 @@ for kernel_dim=5:25
    
     
 % ---- Calcolo della xcorr. 
-    c1 = normxcorr2(pattern1,IMG);
-    c2 = normxcorr2(pattern2,IMG);
-    c3 = normxcorr2(pattern3,IMG);
-    c4 = normxcorr2(pattern4,IMG);
-    c5 = normxcorr2(pattern5,IMG);
-    c6 = normxcorr2(pattern6,IMG);
+%     c1 = normxcorr2(pattern1,IMG);
+%     c2 = normxcorr2(pattern2,IMG);
+%     c3 = normxcorr2(pattern3,IMG);
+%     c4 = normxcorr2(pattern4,IMG);
+%     c5 = normxcorr2(pattern5,IMG);
+%     c6 = normxcorr2(pattern6,IMG);
 
-    xcorr_full = (c1+c2+c3+c4+c5+c6)/6; % calcolo media 
+%     xcorr_full = (c1+c2+c3+c4+c5+c6)/6; % calcolo media 
+    
+    xcorr_full =     imgaborfilt(IMG,kernel_dim,90);
 
     % Tagliamo la xcorr alla dimensione corretta
     xcorr = xcorr_full(kernel_dim-1:end-kernel_dim+1,kernel_dim-1:end-kernel_dim+1); % size(pattern)-1 
@@ -120,10 +118,8 @@ for kernel_dim=5:25
     subplot(122);
     imshow(IMG_masked);
        
-    resname = strcat('results/',files(i).name(1:end-4));
-    sgtitle(sprintf('Risultato immagine %s\nKernel size: %d',files(i).name(1:end-4),kernel_dim));
+    sgtitle(sprintf('Risultato immagine %s\nKernel size: %d',filename,kernel_dim));
   
-    saveas(gcf, resname,'png');
     
 %     
 pause(.5);

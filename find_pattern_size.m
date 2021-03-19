@@ -53,8 +53,8 @@ function [res1, res2] = find_pattern_size(IMG)
     
     
 %     fprintf('\t[observe_CvC] Dimensioni ottimali homogeneity: %d\n',big_homo);
-    fprintf('\t[observe_CvC] Dimensioni ottimali contrast: %d\n',big_cont); 
-    fprintf('\t[observe_CvC] Dimensioni ottimali correlation: %d\n',big_corr);
+    fprintf('\t[find_pattern_size] Dimensioni ottimali contrast: %d\n',big_cont); 
+    fprintf('\t[find_pattern_size] Dimensioni ottimali correlation: %d\n',big_corr);
     
     
     

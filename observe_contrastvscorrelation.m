@@ -5,7 +5,7 @@
     
 %% SETTINGS
     rand_image = false;
-    unrand_number = 23;
+    unrand_number = 83;
     files = dir('defect_images\*.jpg');
     
 %% CODE
