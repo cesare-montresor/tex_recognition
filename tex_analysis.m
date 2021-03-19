@@ -6,10 +6,10 @@ clc
 %%
 % ---- Scelta dell'input e gestione files
     analyze_just_one = true; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
-    rand_image = true; % Se true e se analyze_just_one è true, sceglie 
+    rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number =23;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number =82;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 
@@ -84,12 +84,15 @@ gauss_low = gauss2D(mu, sigma, IMG_x*2, IMG_y*2);
 % --- Ricerca dimensione ottimale dei kernels
 %%% TO BE DONE: DECIDERE SE USARE CONT O CORR
      [kernel_dim2, kernel_dim] = find_pattern_size(IMG);
-     kernel_dim = round(kernel_dim);
+     kernel_dim = round(kernel_dim2);
      kernel_type = 'CORR';
+     
+    
      if rem(kernel_dim,2) ~= 0 && rem(kernel_dim2,2) == 0
-         kernel_dim= kernel_dim2;
+         kernel_dim= kernel_dim;
         kernel_type = 'CONT';
      end
+     
      fprintf('1] Kernel scelto: %d | 2nd opzione: %d \n',kernel_dim,kernel_dim2);
 
 % ---- Definizione dei kernels
@@ -216,7 +219,7 @@ if show_resume == true
     
     sgtitle(sprintf('Risultato immagine %s\nT = %.3f\n%.1f%% selected',filename,T,selected_pixels_ratio));
   
-    saveas(gcf, filename,'png');
+    saveas(gcf, sprintf(results\filename),'png');
     
     if analyze_just_one == false
         close(f);
