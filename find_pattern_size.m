@@ -1,31 +1,64 @@
-function [res1, res2] = find_pattern_size(A)
-    %smpl = round(min(height, width) / 8);
-    smpl = 30;
+function [res1, res2] = find_pattern_size(IMG)
+% Given an images, finds 2 possible good sizes for the kernel, using
+% greycomatrix function on Contrast and Correlation parameters.
+
+%% Settings
+    show_figures = false; % Shows plot with kernel size performance by parameter
+    smpl = 28; % Maximum computable kernel size
+
+%% Code
+    l = 1:28;
     offsets0 = [zeros(smpl,1) (1:smpl)'];
-    glcms = graycomatrix(A, 'Offset', offsets0);
-    corr = graycoprops(glcms,'Contrast').Contrast;
-    corr(1) = 0;
-    plot(corr);
-    % big = find(corr == max(corr(int32(end/2):end)), 1);
+    glcms = graycomatrix(IMG, 'Offset', offsets0);
+
+% % --- Homogenuity %% Commented because il grafico è identico a
+% Correlation, solo con un'ampiezza diversa
+% 
+%     homo = graycoprops(glcms,'Homogeneity').Homogeneity;
+% 
+%     [~,loc] = findpeaks(homo)
+%     big_homo = loc(end);
+%    
+% 
+%     if show_figures    
+%       subplot(311);    
+%       plot(l,homo);
+%       title('homo');
+%     end 
+    
+% --- Contrast
+    cont = graycoprops(glcms,'Contrast').Contrast;
+ 
+    [~,loc] = findpeaks(cont);
+    big_cont = loc(end);
+    
+   if show_figures 
+        subplot(312);
+        plot(l,cont);
+        title('contrast'); 
+   end
+% --- Corr    
+    corr = graycoprops(glcms,'Correlation').Correlation;
+
+    
     [~,loc] = findpeaks(corr);
-    big = loc(end);
-    if numel(loc) > 1
-        small = loc(end - 1);
-    else
-        small = big;
+    big_corr = loc(end);
+    
+    
+    if show_figures
+        subplot(313);    
+        plot(l,corr);
+        title('corr');
     end
     
-%     if small > 15
-%        res=small;
-%     else
-%         res=big;
-%     end
-%     
     
-    res1 = max(loc);
-    res2 = small;
+%     fprintf('\t[observe_CvC] Dimensioni ottimali homogeneity: %d\n',big_homo);
+    fprintf('\t[observe_CvC] Dimensioni ottimali contrast: %d\n',big_cont); 
+    fprintf('\t[observe_CvC] Dimensioni ottimali correlation: %d\n',big_corr);
     
-    fprintf('\t[find_size] Dimensioni ottimali trovate: %d, %d\n',small,big);
     
+    
+res1 = big_corr;
+res2 = big_cont;
 
 end

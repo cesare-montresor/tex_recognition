@@ -6,11 +6,11 @@ clc
 %%
 % ---- Scelta dell'input e gestione files
     analyze_just_one = true; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
-    rand_image = false; % Se true e se analyze_just_one è true, sceglie 
+    rand_image = true; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number =2;  % Se rand_image è false, seleziona l'immagine.
-    flush_folder=true; % Se true, svuota la cartella result prima 
+    unrand_number =23;  % Se rand_image è false, seleziona l'immagine.
+    flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 
 % ---- Impostazioni sulla selezione del kernel
@@ -47,9 +47,7 @@ firsttime=true;
     end
 
 % ---- Caricamento tutte le immagini
-    path_to_images = '';
     files = dir('defect_images\*.jpg');
-
 
 % ---- Gestione di _quali_ immagini analizzare (secondo le impostazioni)
     to_be_analyzed = length(files);
@@ -61,27 +59,16 @@ firsttime=true;
 
 % for loop for each file in folder:
 for fn=1:to_be_analyzed
-
-i=fn;
-if rand_image == true 
-    i=randi(20,1,1);
-end
-
-if rand_image == false && analyze_just_one == true
-    i=unrand_number;
-end
-
-path = strcat('defect_images\',files(i).name);
-fprintf('%s - fn=%d\n',path,i);
-
-IMG_0 = imread(path);
-IMG = rgb2gray(IMG_0); % 512x512
-[IMG_x,IMG_y]=size(IMG);
+ i=fn;
+    [IMG_RGB, filename]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
+    disp(filename)
+    IMG = rgb2gray(IMG_RGB); % 512x512
+    [IMG_x,IMG_y]=size(IMG);
 
     
 %% - Preprocessing TBD
- 
-% Intializing sigma and muu 
+%{
+ Intializing sigma and muu 
 sigma = 100;
 mu = 0.0;
   
@@ -91,17 +78,19 @@ gauss_low = gauss2D(mu, sigma, IMG_x*2, IMG_y*2);
 %  figure(2);imshow(gauss_low);
 
 %  [IMG, Fsh, Fsh_filter] = FourierFilter2D(IMG,gauss_low,IMG_x,IMG_y);
-
-
+%}
 %% - Analisi
 
 % --- Ricerca dimensione ottimale dei kernels
-     [kernel_dim, kernel_dim2] = find_pattern_size(IMG);
+%%% TO BE DONE: DECIDERE SE USARE CONT O CORR
+     [kernel_dim2, kernel_dim] = find_pattern_size(IMG);
      kernel_dim = round(kernel_dim);
+     kernel_type = 'CORR';
      if rem(kernel_dim,2) ~= 0 && rem(kernel_dim2,2) == 0
          kernel_dim= kernel_dim2;
+        kernel_type = 'CONT';
      end
-     fprintf('1] Kernel scelto: %d,%d \n',kernel_dim);
+     fprintf('1] Kernel scelto: %d | 2nd opzione: %d \n',kernel_dim,kernel_dim2);
 
 % ---- Definizione dei kernels
     pattern1 = IMG(1:kernel_dim,1:kernel_dim); 
@@ -172,7 +161,7 @@ if show_resume == true
     figure();
     % Visualizzazione patterns prelevati
     subplot(231); 
-    imagesc(IMG_0); axis image; colormap gray; hold on;
+    imagesc(IMG_RGB); axis image; colormap gray; hold on;
     title('Patterns prelevati');
     rectangle('position',[1,1,kernel_dim,kernel_dim],'EdgeColor','r'); % pattern1
     rectangle('position',[2,2,kernel_dim,kernel_dim],'EdgeColor','g'); % pattern2
@@ -200,19 +189,20 @@ if show_resume == true
     %Visualizziamo risultato
     subplot(224);
     imshowpair(IMG,IMG_masked,'montage')
-    title(sprintf('Risultato %s\n%.2f%%',files(i).name(1:end-4),selected_pixels_ratio));
-    
-    resname =fprintf('%s - contrast);
-    sgtitle(sprintf('Risultato immagine %s\nT = %.3f\n%.1f%% selected',files(i).name(1:end-4),T,selected_pixels_ratio));
-  
+    title(sprintf('Risultato %s\n%.2f%% - k.d. %d',...
+          filename,selected_pixels_ratio,kernel_dim));
+      
+    sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected',...
+            filename,selected_pixels_ratio));
+      
+    resname =sprintf('%s-contrast',files(i).name(1:end-4));
     saveas(gcf, resname,'png');
     
     if analyze_just_one == false
-        close(f);
+        close all;
     end
  end
     
-end
 
  % ---- Figure 2 - risultato
  if show_result == true
@@ -224,18 +214,17 @@ end
     subplot(122);
     imshow(IMG_masked);
     
-    resname = strcat('results/',files(i).name(1:end-4));
-    sgtitle(sprintf('Risultato immagine %s\nT = %.3f\n%.1f%% selected',files(i).name(1:end-4),T,selected_pixels_ratio));
+    sgtitle(sprintf('Risultato immagine %s\nT = %.3f\n%.1f%% selected',filename,T,selected_pixels_ratio));
   
-    saveas(gcf, resname,'png');
+    saveas(gcf, filename,'png');
     
     if analyze_just_one == false
         close(f);
     end
  end
    
-end
 
+end
 
 
 
