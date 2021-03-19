@@ -2,6 +2,9 @@ clear
 close all
 clc
 
+%%% TODO: DECIDERE SE USARE CONT O CORR
+%%% TODO: AGGIUNGERE ANALISI CON GABOR
+
 %% --- I M P O S T A Z I O N I
 %%
 % ---- Scelta dell'input e gestione files
@@ -9,15 +12,10 @@ clc
     rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number =1;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number =92;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
-
-% ---- Impostazioni sulla selezione del kernel
-man_kernel = false; % Se true, usa un valore fisso anziché calcolare 
-                    % il migliore autonomamente
-kernel_dim = 60;    % Specifica la dimensione da usare se man_kernel è true
-
+                        
 % ---- Impostazioni sulla threshold
 man_tresh = false; % Se true, usa un valore fisso anziché calcolare 
                    % il migliore autonomamente
@@ -58,6 +56,7 @@ firsttime=true;
     end
 
 % for loop for each file in folder:
+
 for fn=1:to_be_analyzed
  i=fn;
     [IMG_RGB, filename]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
@@ -68,10 +67,9 @@ for fn=1:to_be_analyzed
 
 % --- Ricerca dimensione ottimale dei kernels
 
-%%% TODO: DECIDERE SE USARE CONT O CORR
      [kernel_dim2, kernel_dim] = find_pattern_size(IMG);
     
-     usecont = false;
+     usecont = false; % per ora lo decido io ma ovviamente andrà provato lolz
      if usecont
           kernel_dim= round(kernel_dim2);
           kernel_type = 'CONT';
@@ -79,9 +77,6 @@ for fn=1:to_be_analyzed
           kernel_dim = round(kernel_dim);
           kernel_type = 'CORR';
      end
-
-    
-
      
      fprintf('1] Kernel scelto: %d',kernel_dim);
 
@@ -108,12 +103,10 @@ for fn=1:to_be_analyzed
     xcorr = abs(xcorr);
     xcorr = imgaussfilt(xcorr,1);
 
-
-% ---- Calcoliamo la treshold ideale con Otsu (o iterativamente TBD)
+% ---- Calcoliamo la treshold ideale con Otsu 
     if man_tresh == false
        T = graythresh(xcorr);
        fprintf('\n2] Tresholds ottimale secondo Otsu: %.4f \n ',T); 
-
     end
 
 % ---- Generiamo la maschera
@@ -122,8 +115,7 @@ for fn=1:to_be_analyzed
 % ---- Refining della maschera
     se = strel('disk',disk_dim); 
     mask = imopen(mask_raw,se);
-%    per l'immagine stronza ci vuole se = strel('disk',10);
-     mask = imclose(mask,se);
+    mask = imclose(mask,se);
     mask = bwareaopen(mask, 200);
 
     
@@ -131,6 +123,7 @@ for fn=1:to_be_analyzed
     border = kernel_dim / 2;
     warning('off');
     IMG=IMG(border:end-border+1,border:end-border+1);
+    warning('on');
     % Clippiamo al massimo i valori dell'immagine che corrispondono alla
     % maschera
     IMG_selected = IMG;    IMG_selected(mask)=255;

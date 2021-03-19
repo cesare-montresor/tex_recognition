@@ -6,10 +6,10 @@ clear
 %%
 % ---- Scelta dell'input e gestione files
     analyze_just_one = true; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
-    rand_image = true; % Se true e se analyze_just_one è true, sceglie 
+    rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number = 24;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number = 92;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 

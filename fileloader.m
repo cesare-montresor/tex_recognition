@@ -6,9 +6,9 @@ function [IMG, filename] = fileloader(fn,files,analyze_just_one,rand_image,unran
         i=randi(20,1,1);
     end
 
-    
+    if i<=50
     path = strcat('defect_images\',files(i).name);
-
+    end
    
     if rand_image == false && analyze_just_one == true
         path = sprintf('defect_images\\i%d.jpg',unrand_number);
