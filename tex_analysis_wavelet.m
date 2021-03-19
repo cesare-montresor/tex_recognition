@@ -9,7 +9,7 @@ clc
     rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number =1;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number =82;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 
@@ -63,61 +63,38 @@ for fn=1:to_be_analyzed
     [IMG_RGB, filename]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
     IMG = rgb2gray(IMG_RGB); % 512x512
     [IMG_x,IMG_y]=size(IMG);
-    
+
+   
 %% - Analisi
 
-% --- Ricerca dimensione ottimale dei kernels
+% --- Ricerca parametri ottimali per Gabor 
+    for len=1:30
+        for phase=1:45:270
+            gab = imgaborfilt(IMG,len,phase);
+            fprintf('minmax: [%.3f %.3f], stddev %.3f',max(gab), min(gab), val = std2(IMG));
+        end
+    end
 
-%%% TODO: DECIDERE SE USARE CONT O CORR
-     [kernel_dim2, kernel_dim] = find_pattern_size(IMG);
-    
-     usecont = false;
-     if usecont
-          kernel_dim= round(kernel_dim2);
-          kernel_type = 'CONT';
-     else
-          kernel_dim = round(kernel_dim);
-          kernel_type = 'CORR';
-     end
 
-    
 
-     
-     fprintf('1] Kernel scelto: %d',kernel_dim);
-
-% ---- Definizione dei kernels
-    pattern1 = IMG(1:kernel_dim,1:kernel_dim); 
-    pattern2 = IMG(2:kernel_dim+1,2:kernel_dim+1);
-    pattern3 = IMG(IMG_x-kernel_dim+1:IMG_x,IMG_y-kernel_dim+1:IMG_y);
-    pattern4 = IMG(IMG_x-kernel_dim:IMG_x-1,IMG_y-kernel_dim:IMG_y-1);
-    pattern5 = IMG(1:kernel_dim,IMG_y-kernel_dim+1:IMG_y);
-    pattern6 = IMG(2:kernel_dim+1,IMG_y-kernel_dim+1:IMG_y);
-
-% ---- Calcolo della xcorr. 
-    c1 = normxcorr2(pattern1,IMG);
-    c2 = normxcorr2(pattern2,IMG);
-    c3 = normxcorr2(pattern3,IMG);
-    c4 = normxcorr2(pattern4,IMG);
-    c5 = normxcorr2(pattern5,IMG);
-    c6 = normxcorr2(pattern6,IMG);
-
-    xcorr_full = (c1+c2+c3+c4+c5+c6)/6; % calcolo media 
+% ---- Facciamo Gabor
+    gabor_full = 
 
     % Tagliamo la xcorr alla dimensione corretta
-    xcorr = xcorr_full(kernel_dim-1:end-kernel_dim+1,kernel_dim-1:end-kernel_dim+1); % size(pattern)-1 
-    xcorr = abs(xcorr);
-    xcorr = imgaussfilt(xcorr,1);
+    gabor = gabor_full(kernel_dim-1:end-kernel_dim+1,kernel_dim-1:end-kernel_dim+1); % size(pattern)-1 
+    gabor = abs(gabor);
+    gabor = imgaussfilt(gabor,1);
 
 
 % ---- Calcoliamo la treshold ideale con Otsu (o iterativamente TBD)
     if man_tresh == false
-       T = graythresh(xcorr);
+       T = graythresh(gabor);
        fprintf('\n2] Tresholds ottimale secondo Otsu: %.4f \n ',T); 
 
     end
 
 % ---- Generiamo la maschera
-    mask_raw = xcorr<T;
+    mask_raw = gabor<T;
 
 % ---- Refining della maschera
     se = strel('disk',disk_dim); 
@@ -167,7 +144,7 @@ if show_resume == true
     
     %Visualizziamo la xcorr risultante
     corr_img = subplot(232);
-    imagesc(xcorr); axis image; colormap(corr_img,jet);
+    imagesc(gabor); axis image; colormap(corr_img,jet);
     title('X-Corr risultante');
     
     %Visualizziamo la maschera raw

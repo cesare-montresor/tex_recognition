@@ -9,7 +9,7 @@ clear
     rand_image = true; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number = 15;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number = 24;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
 
@@ -23,8 +23,10 @@ disk_dim = 5;% Specifica la dimensione da usare per la open della maschera
 firsttime=true;
 
     figure();
+    
 %% C O D I C E
 %%
+
 i=unrand_number;
 fn=i;
 
@@ -34,23 +36,25 @@ files = dir('defect_images\*.jpg');
 IMG = rgb2gray(IMG_0); % 512x512
 [IMG_x,IMG_y]=size(IMG);
 
+ 
+graph_max = ones(1,25-5);
+graph_std = ones(1,25-5);
+for ph = 0:90:90
+for kernel_dim=2:30
     
-
-for kernel_dim=10:30
-
-    
-    gaborfilter = imgaborfilt(IMG,kernel_dim,00);
+    gaborfilter = imgaborfilt(IMG,kernel_dim,ph);
 
     % Tagliamo la xcorr alla dimensione corretta
 %      gaborfilter = gaborfilter_full(kernel_dim-1:end-kernel_dim+1,kernel_dim-1:end-kernel_dim+1); % size(pattern)-1 
 %     gaborfilter = abs(gaborfilter);
 %     gaborfilter = imgaussfilt(gaborfilter,1);
     gaborfilter = gaborfilter ./ max(gaborfilter);
-    
-    
-
 %    T = graythresh(gaborfilter);
-    T = .9;
+
+graph_max(1,i)= max(gaborfilter(:));
+graph_std(1,i) = std2(gaborfilter);
+
+    T = graythresh(IMG)*1.3;
    fprintf('\n2] Tresholds ottimale secondo Otsu: %.4f \n ',T); 
 
 % ---- Generiamo la maschera
@@ -66,7 +70,7 @@ for kernel_dim=10:30
     
 % ---- Ritaglio IMG e applicazione maschera
     border = kernel_dim / 2;
-      IMG_cut=IMG%IMG(border:end-border+1,border:end-border+1);
+      IMG_cut=IMG; %IMG(border:end-border+1,border:end-border+1);
     % Clippiamo al massimo i valori dell'immagine che corrispondono alla
     % maschera
     IMG_selected = IMG_cut;    IMG_selected(mask)=255;
@@ -79,7 +83,9 @@ for kernel_dim=10:30
     selected_pixels = sum(mask(:) == 1);
     selected_pixels_ratio = (selected_pixels/(IMG_cut_x * IMG_cut_y))*100;
 
-    
+    if selected_pixels_ratio > 50
+        mask =~mask;
+    end
     isReliable(mask,IMG_cut);
     
     if analyze_just_one == false
@@ -101,5 +107,7 @@ for kernel_dim=10:30
   
     
 %     
-pause(.5);
- end
+pause(.1);
+end
+end
+ 
