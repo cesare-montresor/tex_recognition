@@ -2,11 +2,12 @@ clear
 close all
 clc
 
+%%% TODO: PRENDERE PIù KERNEL VARIEGATI + MEDIA
 %%% TODO: DECIDERE SE USARE CONT O CORR
 %%% TODO: AGGIUNGERE ANALISI CON GABOR
 
 %% --- I M P O S T A Z I O N I
-%%
+
 % ---- Scelta dell'input e gestione files
     analyze_just_one = true; % Se true, analizza una sola immagine; altrimenti analizza tutta la cartella
     rand_image = false; % Se true e se analyze_just_one è true, sceglie 
@@ -30,8 +31,8 @@ show_result = false; % se true apre una figura che mostra la zona
 disk_dim = 5;% Specifica la dimensione da usare per la open della maschera
 firsttime=true;
 
-%% --- C O D I C E
-%%
+%% --- R U N
+
 
 %% Caricamento files
 
@@ -137,7 +138,7 @@ for fn=1:to_be_analyzed
     selected_pixels_ratio = (selected_pixels/(IMG_x * IMG_y))*100;
 
     
-    isReliable(mask,IMG);
+    is_reliable(mask,IMG);
     
     
 %% F I G U R E S

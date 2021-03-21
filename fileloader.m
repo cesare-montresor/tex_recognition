@@ -1,5 +1,7 @@
 function [IMG, filename] = fileloader(fn,files,analyze_just_one,rand_image,unrand_number)
-    
+    % Given settings, it loads an image and outputs its RGB matrix + its
+    % clean filename (no extension).
+
     i=fn; 
     
     if rand_image == true 
@@ -17,4 +19,5 @@ function [IMG, filename] = fileloader(fn,files,analyze_just_one,rand_image,unran
     
     filename = path(15:end-4);
     IMG = imread(path);
+    
 return
