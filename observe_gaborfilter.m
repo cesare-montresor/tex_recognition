@@ -3,7 +3,8 @@ clear
 close all
 
 % OBSERVE FILE --> Non è usato nel progetto ma serve per osservare
-% l'andamento della maschera.
+% l'andamento della maschera in funzione dei parametri che si danno alla
+% funzione gaborfilter.
 
     % USO:
     % Per ogni impostazione possibile di gaborfilter computa la maschera e

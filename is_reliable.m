@@ -1,8 +1,7 @@
 function [topology_test, selected_pixels_ratio] = is_reliable(mask,img)
-% Stabilisce (molto indicativamente, non essendo un essere umano) se la
-% maschera ottenuta in risultato può essere accettata o meno. //Sarebbe
-% carino anggiungere anche in result un indizio su cosa può essere
-% aggiustato ma ci penserò...
+% Ritorna il numero di aree sconnesse e la percentuale di pixel
+% selezionata. Se abilitato, fa anche una stima grossolana di bonta' della
+% maschera (stampando testo).
 
 %% SETTINGS
     prints = false; % se true mostra se, secondo lui, la maschera è accettabile

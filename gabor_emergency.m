@@ -1,4 +1,4 @@
-function mask = gabor_emergency(IMG,filename)
+function [mask, mask_raw, gaborfilter] = gabor_emergency(IMG,filename)
 % Per ciascuna rotazione in esame (0,90) genera una mappa di gaborfilter 
 % "totale" mediando il gaborfilter di ciascuna magnitudo possibile (nei
 % limiti dati da settings). Dopo di che, genera una maschera usando Otsu

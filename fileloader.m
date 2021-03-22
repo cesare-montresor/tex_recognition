@@ -1,6 +1,6 @@
 function [IMG, filename] = fileloader(fn,files,analyze_just_one,rand_image,unrand_number)
-    % Given settings, it loads an image and outputs its RGB matrix + its
-    % clean filename (no extension).
+    % Partendo dalle impostazioni del file main, carica l'immagine e
+    % outputa l'immagine + il suo nome pulito.
 
     [n_files, ~] = size(files);
     
