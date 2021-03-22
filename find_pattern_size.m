@@ -9,6 +9,7 @@ function [res1, res2] = find_pattern_size(IMG)
 %% S E T T I N G S
     show_figures = false; % Shows plot with kernel size performance by parameter
     smpl = 28; % Maximum computable kernel size
+    prints = false; % prints selected values
 
 %% C O D E
     l = 1:30;
@@ -40,11 +41,10 @@ function [res1, res2] = find_pattern_size(IMG)
         title('corr');
     end
     
-    
-%   fprintf('\t[observe_CvC] Dimensioni ottimali homogeneity: %d\n',big_homo);
-    fprintf('\t[find_pattern_size] Dimensioni ottimali contrast: %d\n',big_cont); 
-    fprintf('\t[find_pattern_size] Dimensioni ottimali correlation: %d\n',big_corr);
-    
+    if prints == true
+        fprintf('\t[find_pattern_size] Dimensioni ottimali contrast: %d\n',big_cont); 
+        fprintf('\t[find_pattern_size] Dimensioni ottimali correlation: %d\n',big_corr);
+    end
     
     
 res1 = big_corr;

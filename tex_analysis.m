@@ -13,16 +13,10 @@ clc
     rand_image = false; % Se true e se analyze_just_one è true, sceglie 
                         % randomicamente l'immagine da analizzare. 
                         % Altrimenti sceglie la unrand_number-esima.
-    unrand_number =92;  % Se rand_image è false, seleziona l'immagine.
+    unrand_number =0;  % Se rand_image è false, seleziona l'immagine.
     flush_folder=false; % Se true, svuota la cartella result prima 
                         % di iniziare
                         
-% ---- Impostazioni sulla threshold
-man_tresh = false; % Se true, usa un valore fisso anziché calcolare 
-                   % il migliore autonomamente
-T = 0.2;           % Specifica la dimensione da usare se man_thresh è tru
-
-
 % ---- Impostazioni di risultato
 show_resume = true;  % se true apre la figura di riassunto coi passaggi
 show_result = false; % se true apre una figura che mostra la zona 
@@ -82,20 +76,13 @@ for fn=1:to_be_analyzed
      fprintf('1] Kernel scelto: %d',kernel_dim);
 
 % ---- Definizione dei kernels
-    pattern1 = IMG(1:kernel_dim,1:kernel_dim); 
-    pattern2 = IMG(2:kernel_dim+1,2:kernel_dim+1);
-    pattern3 = IMG(IMG_x-kernel_dim+1:IMG_x,IMG_y-kernel_dim+1:IMG_y);
-    pattern4 = IMG(IMG_x-kernel_dim:IMG_x-1,IMG_y-kernel_dim:IMG_y-1);
-    pattern5 = IMG(1:kernel_dim,IMG_y-kernel_dim+1:IMG_y);
-    pattern6 = IMG(2:kernel_dim+1,IMG_y-kernel_dim+1:IMG_y);
+    pattern1 = IMG(1:kernel_dim,1:kernel_dim);     pattern2 = IMG(2:kernel_dim+1,2:kernel_dim+1);
+    pattern3 = IMG(IMG_x-kernel_dim+1:IMG_x,IMG_y-kernel_dim+1:IMG_y);    pattern4 = IMG(IMG_x-kernel_dim:IMG_x-1,IMG_y-kernel_dim:IMG_y-1);
+    pattern5 = IMG(1:kernel_dim,IMG_y-kernel_dim+1:IMG_y);    pattern6 = IMG(2:kernel_dim+1,IMG_y-kernel_dim+1:IMG_y);
 
 % ---- Calcolo della xcorr. 
-    c1 = normxcorr2(pattern1,IMG);
-    c2 = normxcorr2(pattern2,IMG);
-    c3 = normxcorr2(pattern3,IMG);
-    c4 = normxcorr2(pattern4,IMG);
-    c5 = normxcorr2(pattern5,IMG);
-    c6 = normxcorr2(pattern6,IMG);
+    c1 = normxcorr2(pattern1,IMG);    c2 = normxcorr2(pattern2,IMG);    c3 = normxcorr2(pattern3,IMG);
+    c4 = normxcorr2(pattern4,IMG);    c5 = normxcorr2(pattern5,IMG);    c6 = normxcorr2(pattern6,IMG);
 
     xcorr_full = (c1+c2+c3+c4+c5+c6)/6; % calcolo media 
 
@@ -105,10 +92,8 @@ for fn=1:to_be_analyzed
     xcorr = imgaussfilt(xcorr,1);
 
 % ---- Calcoliamo la treshold ideale con Otsu 
-    if man_tresh == false
        T = graythresh(xcorr);
-       fprintf('\n2] Tresholds ottimale secondo Otsu: %.4f \n ',T); 
-    end
+       % fprintf('\n2] Tresholds ottimale secondo Otsu: %.4f \n ',T); 
 
 % ---- Generiamo la maschera
     mask_raw = xcorr<T;
@@ -118,7 +103,6 @@ for fn=1:to_be_analyzed
     mask = imopen(mask_raw,se);
     mask = imclose(mask,se);
     mask = bwareaopen(mask, 200);
-
     
 % ---- Ritaglio IMG e applicazione maschera
     border = kernel_dim / 2;
@@ -132,17 +116,12 @@ for fn=1:to_be_analyzed
     % canale rosso
     IMG_masked=cat(3,IMG_selected,IMG,IMG);
     
-
     
+%% F I G U R E S
+%%  
     selected_pixels = sum(mask(:) == 1);
     selected_pixels_ratio = (selected_pixels/(IMG_x * IMG_y))*100;
 
-    
-    is_reliable(mask,IMG);
-    
-    
-%% F I G U R E S
-%%
 if show_resume == true
     
 % --- Figure 1: riassuntazzo
