@@ -19,7 +19,7 @@ function [res1, res2] = find_pattern_size(IMG)
     cont = graycoprops(glcms,'Contrast').Contrast;
  
     [~,loc] = findpeaks(cont);
-    big_cont = loc(end);
+    big_cont = loc(end)-loc(1);
     
    if show_figures 
         subplot(312);
@@ -31,7 +31,7 @@ function [res1, res2] = find_pattern_size(IMG)
 
     
     [~,loc] = findpeaks(corr);
-    big_corr = loc(end);
+    big_corr = loc(end)-loc(1);
     
     
     if show_figures

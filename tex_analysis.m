@@ -28,7 +28,7 @@ show_resume = false;  % se true apre la figura di riassunto coi passaggi
 show_result = true; % se true apre una figura che mostra la zona 
                      % selezionata
 
-num_kernels = 30;
+num_kernels = 20;
 disk_dim = 5;% Specifica la dimensione da usare per la open della maschera
 firsttime=true;
 
@@ -74,23 +74,26 @@ for fn=1:to_be_analyzed
 % --- Ricerca dimensione ottimale dei kernels
     [dim_contr, dim_corr] = find_pattern_size(IMG);
     
-    kernel_dims = [10,15,20, dim_contr, dim_corr];    
+    kernel_dims = [dim_contr, dim_contr/2, dim_contr/4, dim_corr, dim_corr/2, dim_corr/4];    
     kernal_max = max(kernel_dims);
     
     map_x = IMG_x-(kernal_max*2);
     map_y = IMG_y-(kernal_max*2);
     map_size = [map_x, map_y];
     
-    avg_corr = ones(map_size);
+    avg_corr = zeros(map_size);
     
-    avg_mask = ones(map_size);
-    avg_mask_morph = ones(map_size);
+    avg_mask = zeros(map_size);
+    avg_mask_morph = zeros(map_size);
     
-    avg_corr_mask = ones(map_size);
-    avg_corr_mask_morph = ones(map_size);
+    avg_corr_mask = zeros(map_size);
+    avg_corr_mask_morph = zeros(map_size);
     
     for k = 1:num_kernels
         kernel_dim = randsample(kernel_dims,1);
+        if kernel_dim < 5
+           kernel_dim = kernal_max;
+        end
         % kernel_dim = kernel_dim / randi(3);
         if mod(kernel_dim,2) ~= 0
             kernel_dim = kernel_dim+1; % force even
@@ -115,7 +118,10 @@ for fn=1:to_be_analyzed
         
         % Extract pattern
         pat = IMG( pat_x : (pat_x+kernel_dim) ,  pat_y : (pat_y+kernel_dim) );
-        pat = imsharpen(pat);
+        xcorr_pat = normxcorr2(pat, pat);
+        xcorr_pat = abs(xcorr_pat);
+        xcorr_pat_avg = mean(mean(xcorr_pat))
+        %pat = imsharpen(pat);
         
        
         % Add padding to image to obtain equally sized xcorr maps.
@@ -127,8 +133,11 @@ for fn=1:to_be_analyzed
         xcorr = normxcorr2(pat, IMG);
         % cropping borders based on kernel size
         xcorr = xcorr(border:IMG_x+(border-1),border:IMG_y+(border-1));
+        % xcorr = imgaussfilt(xcorr,1);
         % figure(1); imshow(xcorr);  colormap gray;
         xcorr = abs(xcorr);
+        xcorr = xcorr * xcorr_pat_avg;
+        
         % figure(2); imshow(xcorr);  colormap gray;
         
         % Elimino i bordi prima di calcolare OTSU
@@ -143,32 +152,38 @@ for fn=1:to_be_analyzed
         
         
         % accumulate 
-        avg_corr = avg_corr .* (1 + xcorr);
+        avg_corr = avg_corr + xcorr;
         
-        avg_mask = avg_mask .* ( 1 + (mask_raw / num_kernels) );
-        avg_mask_morph = avg_mask_morph .* ( 1 + ( mask_morph / num_kernels) );
+        avg_mask = avg_mask + (mask_raw / num_kernels);
+        avg_mask_morph = avg_mask_morph + ( mask_morph / num_kernels);
         
-        avg_corr_mask = avg_corr_mask .* (1 + (( mask_raw .* xcorr ) / num_kernels));
-        avg_corr_mask_morph = avg_corr_mask_morph .* ( 1+ (( mask_morph .* xcorr ) / num_kernels) );
+        avg_corr_mask = avg_corr_mask + (( mask_raw .* xcorr ) / num_kernels);
+        avg_corr_mask_morph = avg_corr_mask_morph + (( mask_morph .* xcorr ) / num_kernels);
         
     end
     avg_corr_N = mat2gray(avg_corr);
     avg_corr_T = graythresh(avg_corr_N);
     avg_corr_MT = avg_corr_N>avg_corr_T;
     avg_corr_M = imopen(avg_corr_MT, morph_pat_mask);        
-    
+    avg_corr_M = (avg_corr_M .* avg_corr_N) + avg_corr_M;
+    %avg_corr_M = imgaussfilt(avg_corr_M,3);
     
     avg_mask_N = mat2gray(avg_mask);
     avg_mask_T = graythresh(avg_mask_N);
     avg_mask_MT = avg_mask_N>avg_mask_T;
-    avg_mask_M = imopen(avg_mask_MT, morph_pat_mask);        
+    avg_mask_M = imopen(avg_mask_MT, morph_pat_mask);   
+    avg_mask_M = (avg_mask_M .* avg_mask_N) + avg_mask_M;
+    %avg_mask_M = imgaussfilt(avg_mask_M,3);
     
     avg_corr_mask_N = mat2gray(avg_corr_mask);
     avg_corr_mask_T = graythresh(avg_corr_mask_N);
     avg_corr_mask_MT = avg_corr_mask_N>avg_corr_mask_T;
     avg_corr_mask_M = imopen(avg_corr_mask_MT, morph_pat_mask);   
+    avg_corr_mask_M = (avg_corr_mask_M .* avg_corr_mask_N) + avg_corr_mask_M;
+    %avg_corr_mask_M = imgaussfilt(avg_corr_mask_M,3);
     
-    
+    %avg_mask_morph = imgaussfilt(avg_mask_morph,3);
+    %avg_corr_mask_morph = imgaussfilt(avg_mask_morph,3);
     
     figure(10);
     subplot(3,2,1); imagesc(avg_corr_MT); axis image; 
@@ -179,8 +194,9 @@ for fn=1:to_be_analyzed
     subplot(3,2,6); imagesc(avg_corr_mask_M); axis image; 
     
     
-    total = avg_corr_M  + avg_mask_M + avg_corr_mask_M + avg_mask_morph + avg_corr_mask_morph;
-    total = total ./ max(max(total));
+    total = avg_corr_M + avg_mask_M + avg_corr_mask_M + avg_mask_morph + avg_corr_mask_morph;
+    total = mat2gray(total);
+    total = imgaussfilt(total,5);
     T = graythresh(total);
     finalmask = total>T;
     % finalmask = imopen(finalmask, morph_pat_mask);      
