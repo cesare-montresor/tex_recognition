@@ -14,7 +14,7 @@ close all
 
     analyze_just_one = true; 
     rand_image = false;
-    unrand_number = 19;  
+    unrand_number = 2;  
     disk_dim = 7;% Specifica la dimensione da usare per la open della maschera
 
     % Fino a che valore osserviamo il comportamento di gaborfiler? Quanti

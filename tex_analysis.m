@@ -3,10 +3,14 @@ close all
 clc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% @ CESARE!! 
+% Relazione: 
 %    [TODO: PRENDERE PIù KERNEL VARIEGATI + MEDIA]
 %   --- Se vuoi (dato che io sto messa meglio su teoria) lo aggiungo io;
-%   comunque già così riconosce 31 immagini (ho migliorato alcune cose) ^-^
-
+%   comunque già così riconosce 34 immagini (ho migliorato alcune cose) ^-^
+%  
+    %  RELAZIONE:
+    %  https://docs.google.com/document/d/1oUnQE5UUykekRmstjFRi4RPNVbs6H3F_cKcTdAV1ZF0/edit?usp=sharing
+%
 %   Per mantenere questo script (dato che già va e abbiamo poco tempo)
 %   potremmo anche usare 1 sola dimensione kernel (aka quella che torna da
 %   find_pattern_size), limitarci a prendere N volte quella lì e fare
