@@ -5,7 +5,6 @@ clc
 %%% @ CESARE!! 
 % Relazione: 
 %    [TODO: PRENDERE PIù KERNEL VARIEGATI + MEDIA]
-%   --- Se vuoi (dato che io sto messa meglio su teoria) lo aggiungo io;
 %   comunque già così riconosce 34 immagini (ho migliorato alcune cose) ^-^
 %  
     %  RELAZIONE:
