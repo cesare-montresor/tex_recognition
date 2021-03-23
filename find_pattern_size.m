@@ -1,14 +1,12 @@
 function [res1, res2] = find_pattern_size(IMG)
-% Given an images, finds 2 possible good sizes for the kernel, using
-% greycomatrix function on Contrast and Correlation parameters.
-% Per adesso ritorna **l'ultimo massimo locale** per Corr e per Cont,
-% tuttavia forse è meglio cercare il massimo globale o tornarli tutti
-% direttamente...
-
+% Data un'immagine, trova due possibili buone dimensioni per il kernel
+% usando la funzione greycomatrix e considerando l'ultimo valore che
+% massimizza (separatamente) correlazione e contrasto.
 
 %% S E T T I N G S
     show_figures = false; % Shows plot with kernel size performance by parameter
     smpl = 28; % Maximum computable kernel size
+    prints = false; % prints selected values
 
 %% C O D E
     l = 1:30;
@@ -33,18 +31,17 @@ function [res1, res2] = find_pattern_size(IMG)
     [~,loc] = findpeaks(corr);
     big_corr = loc(end)-loc(1);
     
-    
+ % Figure, se abilitate:
     if show_figures
         subplot(313);    
         plot(l,corr);
         title('corr');
     end
     
-    
-%   fprintf('\t[observe_CvC] Dimensioni ottimali homogeneity: %d\n',big_homo);
-    fprintf('\t[find_pattern_size] Dimensioni ottimali contrast: %d\n',big_cont); 
-    fprintf('\t[find_pattern_size] Dimensioni ottimali correlation: %d\n',big_corr);
-    
+    if prints == true
+        fprintf('\t[find_pattern_size] Dimensioni ottimali contrast: %d\n',big_cont); 
+        fprintf('\t[find_pattern_size] Dimensioni ottimali correlation: %d\n',big_corr);
+    end
     
     
 res1 = big_corr;
