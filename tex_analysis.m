@@ -78,7 +78,7 @@ clc
     
 % for loop for each file in folder:
 for fn=1:to_be_analyzed
- i=fn;
+    i=fn;
     [IMG_RGB, filename]= fileloader(fn,files,analyze_just_one,rand_image,unrand_number);
     IMG = rgb2gray(IMG_RGB); % 512x512
     [IMG_x,IMG_y]=size(IMG);
@@ -88,9 +88,9 @@ for fn=1:to_be_analyzed
     avg_gray = floor(mean(mean(IMG)));
     morph_pat_mask = strel('disk',disk_dim); 
 
-% --- Ricerca dimensione ottimale dei kernels
+%% --- Ricerca dimensione ottimale dei kernels
 	[dim_contr, dim_corr] = find_pattern_size(IMG);
-    
+
     kernel_dims = [dim_contr, dim_contr/2, dim_contr/4, dim_corr, dim_corr/2, dim_corr/4];    
     kernal_max = max(kernel_dims);
     
@@ -178,6 +178,7 @@ for fn=1:to_be_analyzed
         avg_corr_mask_morph = avg_corr_mask_morph + (( mask_morph .* xcorr ) / num_kernels);
         
     end
+    
     avg_corr_N = mat2gray(avg_corr);
     avg_corr_T = graythresh(avg_corr_N);
     avg_corr_MT = avg_corr_N>avg_corr_T;
@@ -291,20 +292,20 @@ for fn=1:to_be_analyzed
 % Questa sezione genera (e salva) le immagini di risultato, secondo quello
 % che è settato dalle impostazioni.
 
-   [~, selected_pixels_ratio] = is_reliable(mask,IMG); % mi tornerà utile :)
+    selected_pixels = sum(mask(:) == 1);
+    selected_pixels_ratio = (selected_pixels/(IMG_x * IMG_y))*100;
    
-if show_resume == true
-    
-% --- Figure 1: riassuntazzo
-    figure();
-    
-    %Titolo
-    sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected',...
-        filename,selected_pixels_ratio));
-        
-    % Visualizzazione patterns prelevati
-    subplot(231); 
-    imagesc(IMG_RGB); axis image; colormap gray; hold on;
+    if show_resume == true
+
+    % --- Figure 1: riassuntazzo
+        figure();
+
+        %Titolo
+        sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected', filename, selected_pixels_ratio));
+
+        % Visualizzazione patterns prelevati
+        subplot(231); 
+        imagesc(IMG_RGB); axis image; colormap gray; hold on;
         if kernel_type == "GABOR"
             title('Immagine originale');
         else
@@ -317,49 +318,49 @@ if show_resume == true
             rectangle('position',[2,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','k'); %pattern6
             hold off
         end
-    
-    if show_resume_choice == false
-        %Visualizziamo la xcorr risultante
-        corr_img = subplot(232);
-        imagesc(xcorr); axis image; colormap(corr_img,jet);
-        if kernel_type == "GABOR"
-           title('Gabor mediato');
+
+        if show_resume_choice == false
+            %Visualizziamo la xcorr risultante
+            corr_img = subplot(232);
+            imagesc(xcorr); axis image; colormap(corr_img,jet);
+            if kernel_type == "GABOR"
+               title('Gabor mediato');
+            else
+                title('Mappa di cross-correlazione');
+            end
+
+            %Visualizziamo la maschera raw
+            subplot(233);
+            imagesc(mask_raw); axis image;
+            title('Maschera raw');
+
+            %Visualizziamo maschera rifinita
+            subplot(234);
+            imagesc(mask); axis image; 
+            title('Maschera strel-ata');
+
+            %Visualizziamo risultato
+            subplot(224);
+            imshowpair(IMG,IMG_masked,'montage')
+            title(sprintf('Risultato\n[%.2f%% - Kernel: %s,%d]',...
+                  selected_pixels_ratio,kernel_type,kernel_dim));
+
         else
-            title('Mappa di cross-correlazione');
+            % Visualizziamo le due maschere alternative
+           subplot(232);
+            imagesc(mask_corr); axis image; 
+            title('Maschera CORR strel-ata');      
+           subplot(233);
+            imagesc(mask_cont); axis image; 
+            title('Maschera CONT strel-ata');
+
+            %Visualizziamo risultato
+            subplot(212);
+            imshowpair(IMG,IMG_masked,'montage')
+            title(sprintf('Scelta: %s',kernel_type));
+
         end
-
-        %Visualizziamo la maschera raw
-        subplot(233);
-        imagesc(mask_raw); axis image;
-        title('Maschera raw');
-
-        %Visualizziamo maschera rifinita
-        subplot(234);
-        imagesc(mask); axis image; 
-        title('Maschera strel-ata');
-
-        %Visualizziamo risultato
-        subplot(224);
-        imshowpair(IMG,IMG_masked,'montage')
-        title(sprintf('Risultato\n[%.2f%% - Kernel: %s,%d]',...
-              selected_pixels_ratio,kernel_type,kernel_dim));
-
-    else
-        % Visualizziamo le due maschere alternative
-       subplot(232);
-        imagesc(mask_corr); axis image; 
-        title('Maschera CORR strel-ata');      
-       subplot(233);
-        imagesc(mask_cont); axis image; 
-        title('Maschera CONT strel-ata');
-        
-        %Visualizziamo risultato
-        subplot(212);
-        imshowpair(IMG,IMG_masked,'montage')
-        title(sprintf('Scelta: %s',kernel_type));
-
-    end
-      
+     end     
         
     % Salvataggio
     resname =sprintf('results\\%s - SCELTA %s',filename,kernel_type);
@@ -368,105 +369,106 @@ if show_resume == true
     if analyze_just_one == false
         close all;
     end
- end
-    
 
- % ---- Figure 2 - risultato
- if show_result == true
-     
-    f=figure();
-    subplot(121);
-    imshow(IMG_RGB);
-    title('Immagine originale');
-    
-    subplot(122);
-    imshow(IMG_masked);
-    title('Maschera');
-    
-   
-   sgtitle(sprintf('Risultato immagine %s\n\nT = %.3f\n%.1f%% selected\nTipo di analisi: %s',...
-       filename,T,selected_pixels_ratio,kernel_type));
-  
-    saveas(gcf, sprintf('results\\%s',filename),'png');
-
-    
-
-    
-    
-    %figure(11);
-    %subplot(1,3,1); imshow(IMG); axis image; 
-    %subplot(1,3,2); imshow(padded_final_mask); axis image; 
-    %subplot(1,3,3); imshow(final_IMG); axis image; 
-    
-    IMG_masked = final_IMG;
-
-    %% F I G U R E S
-    %%
-    if show_resume == true
-
-    % --- Figure 1: riassuntazzo
-        figure();
-        % Visualizzazione patterns prelevati
-        subplot(231); 
-        imagesc(IMG_RGB); axis image; colormap gray; hold on;
-        title('Patterns prelevati');
-        rectangle('position',[1,1,kernel_dim,kernel_dim],'EdgeColor','r'); % pattern1
-        rectangle('position',[2,2,kernel_dim,kernel_dim],'EdgeColor','g'); % pattern2
-        rectangle('position',[IMG_x-kernel_dim+1,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','b'); %pattern3
-        rectangle('position',[IMG_x-kernel_dim,IMG_y-kernel_dim,kernel_dim,kernel_dim],'EdgeColor','c'); %pattern4
-        rectangle('position',[1,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','m'); %pattern5
-        rectangle('position',[2,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','k'); %pattern6
-        hold off
-
-        %Visualizziamo la xcorr risultante
-        corr_img = subplot(232);
-        imagesc(xcorr); axis image; colormap(corr_img,jet);
-        title('X-Corr risultante');
-
-        %Visualizziamo la maschera raw
-        subplot(233);
-        imagesc(mask_raw); axis image;
-        title('Maschera raw');
-
-        %Visualizziamo maschera rifinita
-        subplot(234);
-        imagesc(mask); axis image; 
-        title('Maschera strel-ata');
-
-        %Visualizziamo risultato
-        subplot(224);
-        imshowpair(IMG,IMG_masked,'montage')
-        title(sprintf('Risultato\n[%.2f%% - Kernel: %s,%d]',...
-              selected_pixels_ratio,kernel_type,kernel_dim));
-
-        sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected',...
-                filename,selected_pixels_ratio));
-
-        resname =sprintf('results\\%s-%s',filename,kernel_type);
-        saveas(gcf, resname,'png');
-
-        if analyze_just_one == false
-            close all;
-        end
-     end
 
 
      % ---- Figure 2 - risultato
      if show_result == true
 
-        figure(20);
-        subplot(121); imshow(IMG);
-        subplot(122); imshow(IMG_masked);
-        sgtitle(sprintf('Risultato immagine %s',filename));
-        saveas(gcf, sprintf('results/%s', filename),'png');
+        f=figure();
+        subplot(121);
+        imshow(IMG_RGB);
+        title('Immagine originale');
 
-        %if analyze_just_one == false
-        %    close(f);
-        %end
-     end
-   
+        subplot(122);
+        imshow(IMG_masked);
+        title('Maschera');
 
+
+       sgtitle(sprintf('Risultato immagine %s\n\nT = %.3f\n%.1f%% selected\nTipo di analisi: %s',...
+           filename,T,selected_pixels_ratio,kernel_type));
+
+        saveas(gcf, sprintf('results\\%s',filename),'png');
+
+
+
+
+
+        %figure(11);
+        %subplot(1,3,1); imshow(IMG); axis image; 
+        %subplot(1,3,2); imshow(padded_final_mask); axis image; 
+        %subplot(1,3,3); imshow(final_IMG); axis image; 
+
+        IMG_masked = final_IMG;
+
+        %% F I G U R E S
+        %%
+        if show_resume == true
+
+        % --- Figure 1: riassuntazzo
+            figure();
+            % Visualizzazione patterns prelevati
+            subplot(231); 
+            imagesc(IMG_RGB); axis image; colormap gray; hold on;
+            title('Patterns prelevati');
+            rectangle('position',[1,1,kernel_dim,kernel_dim],'EdgeColor','r'); % pattern1
+            rectangle('position',[2,2,kernel_dim,kernel_dim],'EdgeColor','g'); % pattern2
+            rectangle('position',[IMG_x-kernel_dim+1,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','b'); %pattern3
+            rectangle('position',[IMG_x-kernel_dim,IMG_y-kernel_dim,kernel_dim,kernel_dim],'EdgeColor','c'); %pattern4
+            rectangle('position',[1,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','m'); %pattern5
+            rectangle('position',[2,IMG_y-kernel_dim+1,kernel_dim,kernel_dim],'EdgeColor','k'); %pattern6
+            hold off
+
+            %Visualizziamo la xcorr risultante
+            corr_img = subplot(232);
+            imagesc(xcorr); axis image; colormap(corr_img,jet);
+            title('X-Corr risultante');
+
+            %Visualizziamo la maschera raw
+            subplot(233);
+            imagesc(mask_raw); axis image;
+            title('Maschera raw');
+
+            %Visualizziamo maschera rifinita
+            subplot(234);
+            imagesc(mask); axis image; 
+            title('Maschera strel-ata');
+
+            %Visualizziamo risultato
+            subplot(224);
+            imshowpair(IMG,IMG_masked,'montage')
+            title(sprintf('Risultato\n[%.2f%% - Kernel: %s,%d]',...
+                  selected_pixels_ratio,kernel_type,kernel_dim));
+
+            sgtitle(sprintf('Risultato immagine %s\n%.1f%% selected',...
+                    filename,selected_pixels_ratio));
+
+            resname =sprintf('results\\%s-%s',filename,kernel_type);
+            saveas(gcf, resname,'png');
+
+            if analyze_just_one == false
+                close all;
+            end
+         end
+
+
+         % ---- Figure 2 - risultato
+         if show_result == true
+
+            figure(20);
+            subplot(121); imshow(IMG);
+            subplot(122); imshow(IMG_masked);
+            sgtitle(sprintf('Risultato immagine %s',filename));
+            saveas(gcf, sprintf('results/%s', filename),'png');
+
+            %if analyze_just_one == false
+            %    close(f);
+            %end
+         end
+
+    end
+
+ 
 end
-
 
 
